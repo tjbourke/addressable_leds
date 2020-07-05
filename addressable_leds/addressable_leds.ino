@@ -1,50 +1,15 @@
-//  FUNCTION-BASED ANIMATION SEQUENCES FOR WS2812 LED STRIPS
-//  Using FastLED library
-//    Author: Dave Morris:  http://www.google.com/+DaveMorris128
-//  Version 1.0 (2014-07-31)
-//
-//
-//    The following code includes "primitive animations" which are the base effect and
-//  "aggregate animations" which are combinations of one or more primitive animations
-//  Feel free to combine different primitives each loop for synergistic results but:
-//    -If using an aggregate animation make sure your primatives don't clear the buffer each frame (FastLED.clear())
-//    otherwise one animation will clear out any upstream animations before the loop sends the frame (FastLED.show())   
-//  This code is designed to handle multiple LED strips, each with its own animation....
-//  e.g.
-//    void loop()
-//    {
-//      Ring(stripA, frame, 30);
-//      Spark(stripB, frame, 245);
-//      FastLED.show();
-//      frame += animateSpeed;
-//    }
-  
-
 #include "FastLED.h"
 #include <ESP8266WiFi.h>
 #include "Adafruit_MQTT.h"
 #include "Adafruit_MQTT_Client.h"
 
-// Button
+// Standard Config
 #define BUTTON_PIN  0
 #define BOARD_LED_PIN 3
-
-int lastButtonState = 1;
-
-// LEDs
-#define LED_COUNT 60      //Length of your LED strip
-#define MAX_INT_VALUE 65536
 #define LED_PIN 4 // hardware SPI pin SCK
-#define NUM_LEDS 12
 #define COLOR_ORDER GRB
 #define LED_TYPE WS2811
-#define MAX_BRIGHTNESS 255 // watch the power!
-
-CRGB strip[NUM_LEDS];
-uint16_t frame = 0;     //I think I might be able to move this variable to the void loop() scope and save some CPU
-uint16_t animateSpeed = 100;            // Number of frames to increment per loop
-uint8_t  animation = 0;    //Active animation
-uint8_t brightness = 50;    //Global brightness percentage
+#define MAX_INT_VALUE 65536
 
 // Wifi
 #define WIFI_SSID "Bourke"
@@ -55,8 +20,22 @@ uint8_t brightness = 50;    //Global brightness percentage
 #define MQTT_NAME "tjbourke"
 #define MQTT_PASS "1a017b8f4d634e37b2c1e4c2afcbe976"
 
-#define ANIMATION_FEED "tester-animation"
-#define SPEED_FEED "tester-speed"
+// Config
+#define NUM_LEDS 400      // Length of LED strip
+#define DEFAULT_ANIMATION 0
+#define DEFAULT_BRIGHTNESS 255
+#define DEFAULT_ANIMATION_SPEED 100;
+
+#define ANIMATION_FEED "light-animation"
+#define SPEED_FEED "light-speed"
+
+uint16_t animateSpeed = DEFAULT_ANIMATION_SPEED; // Number of frames to increment per loop
+uint8_t  animation = DEFAULT_ANIMATION; // Active animation
+uint8_t brightness = DEFAULT_BRIGHTNESS;  // Global brightness percentage
+
+CRGB strip[NUM_LEDS];
+uint16_t frame = 0;
+int lastButtonState = 1;
 
 WiFiClient client;
 Adafruit_MQTT_Client mqtt(&client, MQTT_SERV, MQTT_PORT, MQTT_NAME, MQTT_PASS);
@@ -74,7 +53,7 @@ void setup()
   
   // LEDs
   FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(strip, NUM_LEDS).setCorrection(TypicalLEDStrip);
-  FastLED.setBrightness(MAX_BRIGHTNESS);
+  FastLED.setBrightness(brightness);
   FastLED.clear();
 
   // Wifi
@@ -316,7 +295,7 @@ void TripleBounce(CRGB strip[], uint16_t frame)   //3 chaser animations offset b
 
 void DoubleChaser(CRGB strip[], uint16_t frame)   //2 chaser animations offset 180 degrees
 {
-  FastLED.clear();    //Clear previous buffer
+  FastLED.clear();    // Clear previous buffer
   frame = frame * 2;
   Ring(strip, frame, 0);
   Ring(strip, frame + (MAX_INT_VALUE / 2), 150);
@@ -324,7 +303,7 @@ void DoubleChaser(CRGB strip[], uint16_t frame)   //2 chaser animations offset 1
 
 void RingPair(CRGB strip[], uint16_t frame)     //2 rings animations at inverse phases
 {
-  FastLED.clear();    //Clear previous buffer
+  FastLED.clear();    // Clear previous buffer
   Ring(strip, frame, 30);
   Ring(strip, MAX_INT_VALUE - frame, 150);
 }
@@ -336,7 +315,6 @@ void RainbowSpark(CRGB targetStrip[], uint16_t animationFrame,uint8_t fade){    
 
 void PaletteColors(CRGB strip[], uint8_t colorIndex, CRGBPalette16 palette, TBlendType blending, uint16_t animationFrame)
 {
-    uint8_t brightness = 255;
     for(int i = 0; i < NUM_LEDS; i++) {
         strip[i] = ColorFromPalette(palette, colorIndex, brightness, blending);
         colorIndex += 3;
@@ -354,7 +332,6 @@ void Segments(CRGB strip[], uint8_t colorIndex, TBlendType blending)
     currentPalettes[1] = CRGBPalette16(CHSV(160, 255, 255),  CHSV(160, 255, 255));
     currentPalettes[2] = CRGBPalette16(CHSV(70, 255, 255),  CHSV(70, 255, 255));
     
-    uint8_t brightness = 255;
     int segment = 0;
     for( int i = 0; i < NUM_LEDS; i++) {
         for (int j = 0; j < sizeof(segments); j++) {
@@ -462,7 +439,7 @@ void Bounce(CRGB targetStrip[], uint16_t animationFrame, uint8_t hue)
     pos16 = MAX_INT_VALUE - ((animationFrame - (MAX_INT_VALUE/2))*2);
   }
 
-  int position = map(pos16, 0, MAX_INT_VALUE, 0, ((LED_COUNT) * 16));
+  int position = map(pos16, 0, MAX_INT_VALUE, 0, ((NUM_LEDS) * 16));
   drawFractionalBar(targetStrip, position, 3, hue,0);
 }
 

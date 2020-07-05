@@ -3,6 +3,15 @@
 #include "Adafruit_MQTT.h"
 #include "Adafruit_MQTT_Client.h"
 
+// Config
+#define NUM_LEDS 16      // Length of LED strip
+#define DEFAULT_ANIMATION 0
+#define DEFAULT_BRIGHTNESS 255
+#define DEFAULT_ANIMATION_SPEED 100;
+
+#define ANIMATION_FEED "tester-animation"
+#define SPEED_FEED "tester-speed"
+
 // Standard Config
 #define BUTTON_PIN  0
 #define BOARD_LED_PIN 3
@@ -20,15 +29,6 @@
 #define MQTT_NAME "tjbourke"
 #define MQTT_PASS "1a017b8f4d634e37b2c1e4c2afcbe976"
 
-// Config
-#define NUM_LEDS 400      // Length of LED strip
-#define DEFAULT_ANIMATION 0
-#define DEFAULT_BRIGHTNESS 255
-#define DEFAULT_ANIMATION_SPEED 100;
-
-#define ANIMATION_FEED "light-animation"
-#define SPEED_FEED "light-speed"
-
 uint16_t animateSpeed = DEFAULT_ANIMATION_SPEED; // Number of frames to increment per loop
 uint8_t  animation = DEFAULT_ANIMATION; // Active animation
 uint8_t brightness = DEFAULT_BRIGHTNESS;  // Global brightness percentage
@@ -39,7 +39,6 @@ int lastButtonState = 1;
 
 WiFiClient client;
 Adafruit_MQTT_Client mqtt(&client, MQTT_SERV, MQTT_PORT, MQTT_NAME, MQTT_PASS);
-
 Adafruit_MQTT_Subscribe animationFeed = Adafruit_MQTT_Subscribe(&mqtt, MQTT_NAME "/feeds/" ANIMATION_FEED);
 Adafruit_MQTT_Subscribe speedFeed = Adafruit_MQTT_Subscribe(&mqtt, MQTT_NAME "/feeds/" SPEED_FEED);
 
@@ -67,7 +66,7 @@ void setup()
 
   Serial.println("OK!");
 
-  //Subscribe to the animation and speed topics
+  // Subscribe to the animation and speed topics
   mqtt.subscribe(&animationFeed);
   mqtt.subscribe(&speedFeed);
 
@@ -76,9 +75,14 @@ void setup()
 
 void loop()
 {
-  // Button
+  buttonLoop();
+  ledLoop();
+  mqttLoop();
+}
+
+void buttonLoop()
+{
   int buttonState = digitalRead(BUTTON_PIN);
-  //Serial.println(buttonState);
   digitalWrite(BOARD_LED_PIN, HIGH);
 
   if (buttonState != lastButtonState) {
@@ -86,10 +90,10 @@ void loop()
       animation++;
     }
   }
-  // LEDs
-  //Each animation adjusts the "targetStrip" specified in its parameter.
-  //Animations are a function of the current animation frame "frame"
-  //Once you've applied the animation to the current strip/frame, Its up to the main loop to send the data to the strip(s)
+}
+
+void ledLoop()
+{
   static uint8_t startIndex = 0;
   startIndex = startIndex + 1; 
 
@@ -110,7 +114,6 @@ void loop()
     //color = CHSV(255*.7083, 85*2.55, 45*2.55); // Purple
     //color = CHSV(125, 250, 148); // Teal / Mako
     //Solid(strip, color);
-    //Fire(55,120,100);
     break;
   case 1:
     RingPair(strip, frame); 
@@ -126,8 +129,9 @@ void loop()
     Wave(strip,frame,180);
     break;
   case 5:  //Blue spark (Slow)
-    Spark(strip,frame,255,188);   //Overloaded version of "Spark" with Hue value, 255 for fade is the slowest fade possible. 256 is on/off
-    delay(2);       //Slow things down a bit more for Slow Spark
+    //Spark(strip,frame,255,188);   //Overloaded version of "Spark" with Hue value, 255 for fade is the slowest fade possible. 256 is on/off
+    //delay(2);       //Slow things down a bit more for Slow Spark
+    Fire(55,120,100); break;
     break;
   case 6: //Blue spark (fast)
     Spark(strip,frame,246,188);   //Overloaded version of "Spark" with Hue value, 246 fade is faster which makes for a sharper dropoff
@@ -174,10 +178,46 @@ void loop()
   
   FastLED.show();         //All animations are applied!..send the results to the strip(s)
   frame += animateSpeed;
-  
-  //Serial.print("frame: ");
-  //Serial.println(frame);
+}
 
+struct animationMap {
+  String name;
+  uint8_t number;
+};
+
+animationMap aMap[] = {
+  (animationMap){"rainbow", 0},
+  (animationMap){"ring", 1},
+  (animationMap){"chaser", 2},
+  (animationMap){"segments", 3},
+  (animationMap){"wave", 4},
+  (animationMap){"fire", 5},
+  (animationMap){"thunderstorm", 8},
+  (animationMap){"rainbow thunderstorm", 9},
+  (animationMap){"red", 10},
+  (animationMap){"dark orange", 11},
+  (animationMap){"orange", 12},
+  (animationMap){"gold", 13},
+  (animationMap){"yellow", 14},
+  (animationMap){"yellow green", 17},
+  (animationMap){"light green", 18},
+  (animationMap){"green", 19},
+  (animationMap){"teal", 20},
+  (animationMap){"light blue", 21},
+  (animationMap){"aqua", 22},
+  (animationMap){"sky blue", 23},
+  (animationMap){"blue", 24},
+  (animationMap){"royal blue", 25},
+  (animationMap){"light purple", 29},
+  (animationMap){"purple", 30},
+  (animationMap){"light pink", 31},
+  (animationMap){"pink", 32},
+  (animationMap){"dark pink", 33},
+  (animationMap){"fuchsia", 34}
+};
+
+void mqttLoop()
+{
   // Wifi
   //Connect/Reconnect to MQTT
   MQTT_connect();
@@ -199,72 +239,21 @@ void loop()
     }
     if (subscription == &animationFeed)
     {
-      //Print the new value to the serial monitor
-      Serial.print("LED1: ");
-      Serial.println((char*) animationFeed.lastread);
       char *animationName = (char *)animationFeed.lastread;
       String a = (String)animationName;
       a.toLowerCase();
-      Serial.println(a);
-      if (a == "rainbow") {
-          animation = 0;
-      } else if (a == "ring") {
-          animation = 1;
-      } else if (a == "chaser") {
-          animation = 2;
-      } else if (a == "wave") {
-          animation = 4;
-      } else if (a == "segments") {
-          animation = 3;
-      } else if (a == "thunderstorm") {
-          animation = 8;
-      } else if (a == "rainbow thunderstorm") {
-          animation = 9;
-      } else if(a == "red") {
-          animation = 10;
-      } else if (a == "dark orange") {
-          animation = 11;
-      } else if (a == "orange") {
-          animation = 12;
-      } else if (a == "gold") {
-          animation = 13;
-      } else if (a == "yellow") {
-          animation = 14;
-      } else if (a == "yellow green") {
-          animation = 17;
-      } else if (a == "light green") {
-          animation = 18;
-      } else if (a == "green") {
-          animation = 19;
-      } else if (a == "teal") {
-          animation = 20;
-      } else if (a == "light blue") {
-          animation = 21;
-      } else if (a == "aqua") {
-          animation = 22;
-      } else if (a == "sky blue") {
-          animation = 23;
-      } else if (a == "blue") {
-          animation = 24;
-      } else if (a == "royal blue") {
-          animation = 25;
-      } else if (a == "light purple") {
-          animation = 29;
-      } else if (a == "purple") {
-          animation = 30;
-      } else if (a == "light pink") {
-          animation = 31;
-      } else if (a == "pink") {
-          animation = 32;
-      } else if (a == "dark pink") {
-          animation = 33;
-      } else if (a == "fuchsia") {
-          animation = 34;
-      } else if (a == "next") {
-          animation++;
+
+      if (a == "next") {
+        animation++;
+      } else {
+        for (int i = 0; i < sizeof(aMap); i++) {
+          if (aMap[i].name == a) {
+            animation = aMap[i].number;
+          }
+        }
       }
       
-      Serial.print("animation: ");
+      Serial.print("Animation: ");
       Serial.println(animation);
     }
     

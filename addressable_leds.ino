@@ -5,21 +5,12 @@
 #include "Led.h"
 
 // Config
-#define NUM_LEDS 70      // Length of LED strip
-#define DEFAULT_ANIMATION 0
-#define DEFAULT_BRIGHTNESS 255
-#define DEFAULT_ANIMATION_SPEED 100;
-
 #define ANIMATION_FEED "tester-animation"
 #define SPEED_FEED "tester-speed"
 
 // Standard Config
 #define BUTTON_PIN  0
 #define BOARD_LED_PIN 3
-#define LED_PIN 4 // hardware SPI pin SCK
-#define COLOR_ORDER GRB
-#define LED_TYPE WS2811
-#define MAX_INT_VALUE 65536
 
 // Wifi
 #define WIFI_SSID "Bourke"
@@ -34,8 +25,6 @@
 //uint8_t  animation = DEFAULT_ANIMATION; // Active animation
 //uint8_t brightness = DEFAULT_BRIGHTNESS;  // Global brightness percentage
 
-//CRGB strip[NUM_LEDS];
-//uint16_t frame = 0;
 int lastButtonState = 1;
 
 WiFiClient client;
@@ -92,9 +81,6 @@ void setup()
   
   // LEDs
   led.setup();
-//  FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(strip, NUM_LEDS).setCorrection(TypicalLEDStrip);
-//  FastLED.setBrightness(brightness);
-//  FastLED.clear();
 
   // Wifi
   //Connect to WiFi
@@ -117,23 +103,24 @@ void setup()
 void loop()
 {
   buttonLoop();
-  //ledLoop();
+  
   led.loop();
+  
   mqttLoop();
 }
 
 void buttonLoop()
 {
-  /*
   int buttonState = digitalRead(BUTTON_PIN);
   digitalWrite(BOARD_LED_PIN, HIGH);
 
+  uint8_t animation = led.GetAnimation();
   if (buttonState != lastButtonState) {
     if (buttonState == 0) {
       animation++;
     }
   }
-  */
+  led.SetAnimation(animation);
 }
 
 void mqttLoop()

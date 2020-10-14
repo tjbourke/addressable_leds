@@ -120,6 +120,16 @@ void Led::loop()
   frame += animateSpeed;
 }
 
+uint8_t Led::GetAnimation()
+{
+  return animation;
+}
+
+void Led::SetAnimation(uint8_t anim)
+{
+  animation = anim;
+}
+
 void Led::Segments(CRGB strip[], uint8_t colorIndex, TBlendType blending)
 {
     int segments [] = {37, 69, 102};

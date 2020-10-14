@@ -12,6 +12,7 @@ class Led
 
     uint8_t GetAnimation();
     void SetAnimation(uint8_t anim);
+    void SetAnimationSpeed(uint16_t animSpeed);
 
     void Segments(CRGB strip[], uint8_t colorIndex, TBlendType blending);
     CRGBPalette16 SetupPalette(int start, int end);

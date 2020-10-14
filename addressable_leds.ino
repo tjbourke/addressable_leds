@@ -125,10 +125,12 @@ void buttonLoop()
 
 void mqttLoop()
 {
-  /*
   // Wifi
   //Connect/Reconnect to MQTT
   MQTT_connect();
+  
+  uint16_t animateSpeed;
+  uint8_t animation;
 
   //Read from our subscription queue until we run out, or
   //wait up to 5 seconds for subscription to update
@@ -140,6 +142,9 @@ void mqttLoop()
         int animSpeed = atoi(animSpeedString);
         if (animSpeed > 0 && animSpeed <= 1000) {
             animateSpeed = animSpeed;
+
+            led.SetAnimationSpeed(animateSpeed);
+            
             Serial.print("Speed changed to: ");
             Serial.println(animSpeed);
             Serial.println(animateSpeed);
@@ -160,6 +165,8 @@ void mqttLoop()
           }
         }
       }
+
+      led.SetAnimation(animation);
       
       Serial.print("Animation: ");
       Serial.println(animation);
@@ -168,7 +175,6 @@ void mqttLoop()
     if (!mqtt.ping()) { mqtt.disconnect(); }
     delay(0);
   }
-  */
 }
 
 

@@ -21,53 +21,12 @@
 #define MQTT_NAME "tjbourke"
 #define MQTT_PASS "1a017b8f4d634e37b2c1e4c2afcbe976"
 
-//uint16_t animateSpeed = DEFAULT_ANIMATION_SPEED; // Number of frames to increment per loop
-//uint8_t  animation = DEFAULT_ANIMATION; // Active animation
-//uint8_t brightness = DEFAULT_BRIGHTNESS;  // Global brightness percentage
-
 int lastButtonState = 1;
 
 WiFiClient client;
 Adafruit_MQTT_Client mqtt(&client, MQTT_SERV, MQTT_PORT, MQTT_NAME, MQTT_PASS);
 Adafruit_MQTT_Subscribe animationFeed = Adafruit_MQTT_Subscribe(&mqtt, MQTT_NAME "/feeds/" ANIMATION_FEED);
 Adafruit_MQTT_Subscribe speedFeed = Adafruit_MQTT_Subscribe(&mqtt, MQTT_NAME "/feeds/" SPEED_FEED);
-
-
-struct animationMap {
-  String name;
-  uint8_t number;
-};
-
-animationMap aMap[] = {
-  (animationMap){"rainbow", 0},
-  (animationMap){"ring", 1},  
-  (animationMap){"chaser", 2},
-  (animationMap){"segments", 3},
-  (animationMap){"wave", 4},
-  (animationMap){"fire", 5},
-  (animationMap){"thunderstorm", 8},
-  (animationMap){"rainbow thunderstorm", 9},
-  (animationMap){"red", 10},
-  (animationMap){"dark orange", 11},
-  (animationMap){"orange", 12},
-  (animationMap){"gold", 13},
-  (animationMap){"yellow", 14},
-  (animationMap){"yellow green", 17},
-  (animationMap){"light green", 18},
-  (animationMap){"green", 19},
-  (animationMap){"teal", 20},
-  (animationMap){"light blue", 21},
-  (animationMap){"aqua", 22},
-  (animationMap){"sky blue", 23},
-  (animationMap){"blue", 24},
-  (animationMap){"royal blue", 25},
-  (animationMap){"light purple", 29},
-  (animationMap){"purple", 30},
-  (animationMap){"light pink", 31},
-  (animationMap){"pink", 32},
-  (animationMap){"dark pink", 33},
-  (animationMap){"fuchsia", 34}
-};
 
 Led led;
 
@@ -91,7 +50,7 @@ void setup()
     delay(500);
   }
 
-  Serial.println("OK!");
+  Serial.println("Wifi is setup!");
 
   // Subscribe to the animation and speed topics
   mqtt.subscribe(&animationFeed);
@@ -116,11 +75,12 @@ void buttonLoop()
 
   uint8_t animation = led.GetAnimation();
   if (buttonState != lastButtonState) {
+    lastButtonState = buttonState;
     if (buttonState == 0) {
       animation++;
+      led.SetAnimation(animation);
     }
   }
-  led.SetAnimation(animation);
 }
 
 void mqttLoop()
@@ -155,21 +115,7 @@ void mqttLoop()
       char *animationName = (char *)animationFeed.lastread;
       String a = (String)animationName;
       a.toLowerCase();
-
-      if (a == "next") {
-        animation++;
-      } else {
-        for (int i = 0; i < sizeof(aMap); i++) {
-          if (aMap[i].name == a) {
-            animation = aMap[i].number;
-          }
-        }
-      }
-
-      led.SetAnimation(animation);
-      
-      Serial.print("Animation: ");
-      Serial.println(animation);
+      led.SetAnimationName(a);
     }
     
     if (!mqtt.ping()) { mqtt.disconnect(); }

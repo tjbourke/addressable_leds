@@ -1,7 +1,7 @@
 #include "FastLED.h"
-#include <ESP8266WiFi.h>
-#include "Adafruit_MQTT.h"
-#include "Adafruit_MQTT_Client.h"
+//#include <ESP8266WiFi.h>
+//#include "Adafruit_MQTT.h"
+//#include "Adafruit_MQTT_Client.h"
 #include "Led.h"
 
 // Config
@@ -23,10 +23,10 @@
 
 int lastButtonState = 1;
 
-WiFiClient client;
-Adafruit_MQTT_Client mqtt(&client, MQTT_SERV, MQTT_PORT, MQTT_NAME, MQTT_PASS);
-Adafruit_MQTT_Subscribe animationFeed = Adafruit_MQTT_Subscribe(&mqtt, MQTT_NAME "/feeds/" ANIMATION_FEED);
-Adafruit_MQTT_Subscribe speedFeed = Adafruit_MQTT_Subscribe(&mqtt, MQTT_NAME "/feeds/" SPEED_FEED);
+//WiFiClient client;
+//Adafruit_MQTT_Client mqtt(&client, MQTT_SERV, MQTT_PORT, MQTT_NAME, MQTT_PASS);
+//Adafruit_MQTT_Subscribe animationFeed = Adafruit_MQTT_Subscribe(&mqtt, MQTT_NAME "/feeds/" ANIMATION_FEED);
+//Adafruit_MQTT_Subscribe speedFeed = Adafruit_MQTT_Subscribe(&mqtt, MQTT_NAME "/feeds/" SPEED_FEED);
 
 Led led;
 
@@ -43,18 +43,18 @@ void setup()
 
   // Wifi
   //Connect to WiFi
-  Serial.print("\n\nConnecting Wifi... ");
-  WiFi.begin(WIFI_SSID, WIFI_PASS);
-  while (WiFi.status() != WL_CONNECTED)
-  {
-    delay(500);
-  }
+  //Serial.print("\n\nConnecting Wifi... ");
+  //WiFi.begin(WIFI_SSID, WIFI_PASS);
+  //while (WiFi.status() != WL_CONNECTED)
+  //{
+  //  delay(500);
+  //}
 
-  Serial.println("Wifi is setup!");
+  //Serial.println("Wifi is setup!");
 
   // Subscribe to the animation and speed topics
-  mqtt.subscribe(&animationFeed);
-  mqtt.subscribe(&speedFeed);
+  //mqtt.subscribe(&animationFeed);
+  //mqtt.subscribe(&speedFeed);
 
   pinMode(LED_BUILTIN, OUTPUT);
 }
@@ -65,7 +65,7 @@ void loop()
   
   led.loop();
   
-  mqttLoop();
+  //mqttLoop();
 }
 
 void buttonLoop()
@@ -83,6 +83,7 @@ void buttonLoop()
   }
 }
 
+/*
 void mqttLoop()
 {
   // Wifi
@@ -149,4 +150,4 @@ void MQTT_connect()
     }
   }
   Serial.println("MQTT Connected!");
-}
+}*/

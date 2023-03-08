@@ -2,12 +2,14 @@
 #include "FastLED.h"
 #include "Led.h"
 
-#define NUM_LEDS 70
+#define NUM_LEDS 100
+
 #define DEFAULT_ANIMATION 0
 #define DEFAULT_BRIGHTNESS 255
 #define DEFAULT_ANIMATION_SPEED 100;
+#define ANIMATION_LENGTH 120 // Seconds, roughly. 0 = Off
 
-#define LED_PIN 4 // hardware SPI pin SCK
+#define LED_PIN 2 // hardware SPI pin SCK
 #define COLOR_ORDER GRB
 #define LED_TYPE WS2811
 #define MAX_INT_VALUE 65536
@@ -17,6 +19,8 @@ uint8_t animation = DEFAULT_ANIMATION; // Active animation
 String animationName = "rainbow"; // Active animation
 uint8_t brightness = DEFAULT_BRIGHTNESS;  // Global brightness percentage
 
+uint32_t loops = 0;
+
 CRGB strip[NUM_LEDS];
 
 uint16_t frame = 0;
@@ -25,6 +29,7 @@ int animationMapLength = 12;
 String animationMap[] = {
   "rainbow",
   "white",
+  "red", "green", "blue",
   "rainbow spark",
   "fast blue spark",
   "slow blue spark",
@@ -70,14 +75,14 @@ void Led::loop()
   //    PaletteColors(strip, startIndex, SetupPalette(baseColor, baseColor+10), LINEARBLEND, frame); break;
 
   String a = animationName;
-  if (a == "rainbow") {
+  if (a == "arm") {
+    Segments(strip, frame, LINEARBLEND);
+  } else if (a == "rainbow") {
     PaletteColors(strip, startIndex, RainbowColors_p, LINEARBLEND, frame);
-  } else if (a == "chaser") {
-    DoubleChaser(strip,frame);
   } else if (a == "ring") {
     RingPair(strip, frame);
-  } else if (a == "arm") {
-    Segments(strip, frame, LINEARBLEND);
+  } else if (a == "chaser") {
+    DoubleChaser(strip,frame);
   } else if (a == "wave") {
     WaveInt(strip,frame,180);
   } else if (a == "wave also") {
@@ -98,9 +103,24 @@ void Led::loop()
     RainbowSpark(strip,frame,240);    //240 for dropoff is a pretty sharp fade, good for this animation
   } else if (a == "white") {
     Solid(strip, CRGB::White);
+  } else if (a == "red") {
+    Solid(strip, CRGB::Red);
+  } else if (a == "green") {
+    Solid(strip, CRGB::Green);
+  } else if (a == "blue") {
+    Solid(strip, CRGB::Blue);
   } else {
     PaletteColors(strip, startIndex, RainbowColors_p, LINEARBLEND, frame); // Default to rainbow
   }
+
+  // Change animation based on timer
+  //if (ANIMATION_LENGTH) {
+  //  if (loops > ANIMATION_LENGTH * 13) { // Roughly 13 loops = 1 second 
+  //    SetAnimation(animation + 1);
+  //    loops = 0;
+  //  }
+  //  loops++;
+  //}
   
   FastLED.show();         //All animations are applied!..send the results to the strip(s)
   frame += animateSpeed;

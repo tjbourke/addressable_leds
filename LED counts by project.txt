@@ -1,0 +1,5 @@
+// LED counts by projects
+// 62 = Japanese garage lamps
+// 235 = Garage workbench
+// 1400 = Basement Gym
+// 38 = Mirror Ring Light

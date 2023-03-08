@@ -2,7 +2,7 @@
 #include "FastLED.h"
 #include "Led.h"
 
-#define NUM_LEDS 100
+#define NUM_LEDS 1400
 
 #define DEFAULT_ANIMATION 0
 #define DEFAULT_BRIGHTNESS 255
@@ -25,7 +25,7 @@ CRGB strip[NUM_LEDS];
 
 uint16_t frame = 0;
 
-int animationMapLength = 12;
+int animationMapLength = 15;
 String animationMap[] = {
   "rainbow",
   "white",
@@ -72,13 +72,13 @@ void Led::loop()
   //    //color = CHSV(125, 250, 148); // Teal / Mako
   //    //Solid(strip, color);
 
-  //    PaletteColors(strip, startIndex, SetupPalette(baseColor, baseColor+10), LINEARBLEND, frame); break;
+  //    PaletteColors(strip, startIndex, SetupPalette(baseColor, baseColor+10), LINEARBLEND); break;
 
   String a = animationName;
   if (a == "arm") {
     Segments(strip, frame, LINEARBLEND);
   } else if (a == "rainbow") {
-    PaletteColors(strip, startIndex, RainbowColors_p, LINEARBLEND, frame);
+    PaletteColors(strip, startIndex, RainbowColors_p, LINEARBLEND);
   } else if (a == "ring") {
     RingPair(strip, frame);
   } else if (a == "chaser") {
@@ -110,7 +110,7 @@ void Led::loop()
   } else if (a == "blue") {
     Solid(strip, CRGB::Blue);
   } else {
-    PaletteColors(strip, startIndex, RainbowColors_p, LINEARBLEND, frame); // Default to rainbow
+    PaletteColors(strip, startIndex, RainbowColors_p, LINEARBLEND); // Default to rainbow
   }
 
   // Change animation based on timer
@@ -124,6 +124,17 @@ void Led::loop()
   
   FastLED.show();         //All animations are applied!..send the results to the strip(s)
   frame += animateSpeed;
+}
+
+void Led::SetBrightness(uint8_t brightness) 
+{
+  if(brightness > 255) {
+    brightness = 255;
+  } else if(brightness < 0) {
+    brightness = 0;
+  }
+  
+  FastLED.setBrightness(brightness);
 }
 
 uint8_t Led::GetAnimation()
@@ -155,6 +166,12 @@ void Led::SetAnimationName(String animName)
 
 void Led::SetAnimationSpeed(uint16_t animSpeed)
 {
+  if (animSpeed > 1000) {
+    animSpeed = 1000;
+  } else if (animSpeed < 0) {
+    animSpeed = 0;
+  }
+  
   animateSpeed = animSpeed;
 }
 
@@ -190,7 +207,7 @@ CRGBPalette16 Led::SetupPalette(int start, int end)
 }
 
 
-void Led::PaletteColors(CRGB strip[], uint8_t colorIndex, CRGBPalette16 palette, TBlendType blending, uint16_t animationFrame)
+void Led::PaletteColors(CRGB strip[], uint8_t colorIndex, CRGBPalette16 palette, TBlendType blending)
 {
   for (int i = 0; i < NUM_LEDS; i++) {
     strip[i] = ColorFromPalette(palette, colorIndex, brightness, blending);

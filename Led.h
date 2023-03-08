@@ -10,6 +10,8 @@ class Led
     void setup();
     void loop();
 
+
+    void SetBrightness(uint8_t brightness);
     uint8_t GetAnimation();
     void SetAnimation(uint8_t anim);
     void SetAnimationName(String animName);
@@ -17,7 +19,7 @@ class Led
 
     void Segments(CRGB strip[], uint8_t colorIndex, TBlendType blending);
     CRGBPalette16 SetupPalette(int start, int end);
-    void PaletteColors(CRGB strip[], uint8_t colorIndex, CRGBPalette16 palette, TBlendType blending, uint16_t animationFrame);
+    void PaletteColors(CRGB strip[], uint8_t colorIndex, CRGBPalette16 palette, TBlendType blending);
     void TripleBounce(CRGB strip[], uint16_t frame);
     void DoubleChaser(CRGB strip[], uint16_t frame);
     void RingPair(CRGB strip[], uint16_t frame);

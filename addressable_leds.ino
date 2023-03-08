@@ -4,6 +4,10 @@
 //#include "Adafruit_MQTT_Client.h"
 #include "Led.h"
 
+// Potentiometer
+#define USES_BRIGHTNESS_POT true
+#define POT_BRIHTNESS_PIN A0
+
 // Config
 #define ANIMATION_FEED "tester-animation"
 #define SPEED_FEED "tester-speed"
@@ -20,6 +24,8 @@
 #define MQTT_PORT 1883
 #define MQTT_NAME "tjbourke"
 #define MQTT_PASS "1a017b8f4d634e37b2c1e4c2afcbe976"
+
+int potVal = 0;
 
 int lastButtonState = 1;
 
@@ -49,7 +55,6 @@ void setup()
   //{
   //  delay(500);
   //}
-
   //Serial.println("Wifi is setup!");
 
   // Subscribe to the animation and speed topics
@@ -64,6 +69,12 @@ void loop()
   buttonLoop();
   
   led.loop();
+  
+  // Potentiometer
+  if(USES_BRIGHTNESS_POT) {
+    potVal = analogRead(POT_BRIHTNESS_PIN);
+    led.SetBrightness(potVal / 4); // Normalize to 0 to 255
+  }
   
   //mqttLoop();
 }
